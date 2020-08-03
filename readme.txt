@@ -13,13 +13,18 @@ Para reconhecer os rostos:
 
 
 Passo a passo para preparar sistema:
+	-A versão necessária do Python é a 3.6.x-
 
 	Recomendados:
-		1. conda create --name "nome_de_sua_escolha" python=3.6
-		2. conda activate "nome_de_sua_escolha"
+		1. sudo apt-get update
+		2. conda create --name "nome_de_sua_escolha" python=3.6
+		3. conda activate "nome_de_sua_escolha"
 
 	Obrigatórios:
-		3. pip install opencv-contrib-python
-		4. pip install dlib -vvv
-		5. pip install face_recognition -vvv
-		6. pip install imutils
+		4. sudo apt-get install build-essential cmake
+		5. sudo apt-get isntall libopenblas-dev liblapack-dev
+		6. sudo apt-get install libx11-dev libgtk-3-dev
+		7. pip install opencv-contrib-python
+		8. pip install dlib -vvv
+		9. pip install face_recognition -vvv
+	   10. pip install imutils
