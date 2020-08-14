@@ -27,9 +27,9 @@ knownNames = []
 
 def encoded(fileName):
     if(fileName.startswith('encoded-')):
-        return False
-    else:
         return True
+    else:
+        return False
 
 # passa pelos caminhos das imagens
 for (i, imagePath) in enumerate(imagePaths):
@@ -37,7 +37,7 @@ for (i, imagePath) in enumerate(imagePaths):
     name = imagePath.split(os.path.sep)[-2]
     fileName = imagePath.split(os.path.sep)[-1]
 
-    if(encoded(fileName)):
+    if(not encoded(fileName)):
         print("[INFO] processing image {}/{}".format(i + 1,
                                                      len(imagePaths)))
 
