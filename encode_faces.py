@@ -6,6 +6,14 @@ import pickle
 import cv2
 import os
 
+
+def encoded(fileName):
+    if(fileName.startswith('encoded-')):
+        return True
+    else:
+        return False
+
+
 # constrói o analisador (parser) de argumentos e analisa os argumentos
 ap = argparse.ArgumentParser()
 ap.add_argument("-i", "--dataset", required=True,
@@ -18,18 +26,12 @@ args = vars(ap.parse_args())
 
 # pega os caminhos das imagens de entrada da pasta dataset
 print("[INFO] quantifying faces...")
-imagePaths = list(paths.list_images(args["dataset"]))
+imagePaths = [imagePath for imagePath in list(paths.list_images(
+    args["dataset"])) if not encoded(imagePath.split(os.path.sep)[-1])]
 
 # inicializa a lista de codificações e nomes conhecidos
 knownEncodings = []
 knownNames = []
-
-
-def encoded(fileName):
-    if(fileName.startswith('encoded-')):
-        return True
-    else:
-        return False
 
 # passa pelos caminhos das imagens
 for (i, imagePath) in enumerate(imagePaths):
