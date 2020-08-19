@@ -72,14 +72,15 @@ for (i, imagePath) in enumerate(imagePaths):
 
 # grava as codificações faciais + nomes no disco
 print("[INFO] serializing encodings...")
-data = {"encodings": knownEncodings, "names": knownNames}
 
-if(len(data) > 0):
+if(len(knownNames) > 0 and len(knownEncodings) > 0):
     if(os.path.exists(args["encodings"])):
-        with open(args["encodings"], "ab") as f:
-            f.write(pickle.dumps(data))
-
+        with open("encodings.pickle", "rb") as f:
+            data = pickle.loads(f.read())
+            data['encodings'].extend(knownEncodings)
+            data['names'].extend(knownNames)
     else:
-        f = open(args["encodings"], "wb")
+        data = {"encodings": knownEncodings, "names": knownNames}
+
+    with open("encodings.pickle", "wb") as f:
         f.write(pickle.dumps(data))
-        f.close()
