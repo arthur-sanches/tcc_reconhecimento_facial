@@ -2,25 +2,20 @@
 from imutils.video import VideoStream
 from imutils.video import FPS
 import face_recognition
-import argparse
 import imutils
 import pickle
 import time
 import cv2
 
-# constrói o analisador (parser) de argumentos e analisa os argumentos
-ap = argparse.ArgumentParser()
-ap.add_argument("-c", "--cascade", required=True,
-                help="caminho no qual path to where the face cascade resides")
-ap.add_argument("-e", "--encodings", required=True,
-                help="path to serialized db of facial encodings")
-args = vars(ap.parse_args())
+
+encodings_path = "encodings.pickle"
+cascade = "haarcascade_frontalface_default.xml"
 
 # carrega as faces conhecidas e incorporações (embeddings) junto
 # da detecção de faces do OpenCV Haarcascade
 print("[INFO] loading encodings + face detector...")
-data = pickle.loads(open(args["encodings"], "rb"). read())
-detector = cv2.CascadeClassifier(cv2.data.haarcascades + args["cascade"])
+data = pickle.loads(open(encodings_path, "rb"). read())
+detector = cv2.CascadeClassifier(cv2.data.haarcascades + cascade)
 
 # inicializa o stream de vídeo e dá tempo para a câmera aquecer
 print("[INFO] starting video stream...")
@@ -47,7 +42,7 @@ while True:
     rects = detector.detectMultiScale(
         gray, scaleFactor=1.1, minNeighbors=5, minSize=(30, 30))
 
-    # o OpenCV retorna coordenadas da caixa delimitadora na ordem 
+    # o OpenCV retorna coordenadas da caixa delimitadora na ordem
     # (x, y, w, h) mas precisamos delas na ordem (superior, direita,
     # inferior, esquerda), então é necessário fazer uma reordenação
     boxes = [(y, x + w, y + h, x) for (x, y, w, h) in rects]
@@ -66,8 +61,8 @@ while True:
 
         # verifica se alguma correspondência foi encontrada
         if True in matches:
-            # encontra as indexações de todas as faces correspondentes 
-            # e inicia um dicionário (dictionary do python) para contar 
+            # encontra as indexações de todas as faces correspondentes
+            # e inicia um dicionário (dictionary do python) para contar
             # o número total de vezes que cada face foi correspondida
             matchedIdxs = [i for (i, b) in enumerate(matches) if b]
             counts = {}
@@ -78,8 +73,8 @@ while True:
                 name = data["names"][i]
                 counts[name] = counts.get(name, 0) + 1
 
-            # determina a face reconhecida com o maior número de votos 
-            # (nota: no improvável evento de um empate o Python 
+            # determina a face reconhecida com o maior número de votos
+            # (nota: no improvável evento de um empate o Python
             # escolherá o primeiro valor no dicionário)
             name = max(counts, key=counts.get)
 

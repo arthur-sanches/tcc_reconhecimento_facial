@@ -1,7 +1,6 @@
 # importa os pacotes necessários
 from imutils import paths
 import face_recognition
-import argparse
 import pickle
 import cv2
 import os
@@ -14,20 +13,14 @@ def encoded(fileName):
         return False
 
 
-# constrói o analisador (parser) de argumentos e analisa os argumentos
-ap = argparse.ArgumentParser()
-ap.add_argument("-i", "--dataset", required=True,
-                help="path to input directory of faces + images")
-ap.add_argument("-e", "--encodings", required=True,
-                help="path to serialized db of facial encodings")
-ap.add_argument("-d", "--detection-method", type=str, default="cnn",
-                help="face detection model to use: either `hog` or `cnn`")
-args = vars(ap.parse_args())
+dataset_path = "dataset"
+detection_method = "hog"
+encodings_path = "encodings.pickle"
 
 # pega os caminhos das imagens de entrada da pasta dataset
 print("[INFO] quantifying faces...")
 imagePaths = [imagePath for imagePath in list(paths.list_images(
-    args["dataset"])) if not encoded(imagePath.split(os.path.sep)[-1])]
+    dataset_path)) if not encoded(imagePath.split(os.path.sep)[-1])]
 
 # inicializa a lista de codificações e nomes conhecidos
 knownEncodings = []
@@ -51,7 +44,7 @@ for (i, imagePath) in enumerate(imagePaths):
         # detecta as coordenadas (x, y) das caixas delimitadoras
         # correspondentes para cada face nas imagens de entrada
         boxes = face_recognition.face_locations(rgb,
-                                                model=args["detection_method"])
+                                                model=detection_method)
 
         # processa as incorporações (embedding) faciais para a face
         encodings = face_recognition.face_encodings(rgb, boxes)
@@ -74,7 +67,7 @@ for (i, imagePath) in enumerate(imagePaths):
 print("[INFO] serializing encodings...")
 
 if(len(knownNames) > 0 and len(knownEncodings) > 0):
-    if(os.path.exists(args["encodings"])):
+    if(os.path.exists(encodings_path)):
         with open("encodings.pickle", "rb") as f:
             data = pickle.loads(f.read())
             data['encodings'].extend(knownEncodings)

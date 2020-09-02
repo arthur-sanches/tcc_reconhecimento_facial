@@ -4,12 +4,11 @@ contendo pastas com os nomes das pessoas e fotos dentro das respectivas pastas.
 
 Para realizar o processamento das imagens e gerar o arquivo de encodings, dentro da pasta operador execute no terminal:
 
-	python encode_faces.py --dataset dataset --encodings encodings.pickle --detection-method hog
-
+	python encode_faces.py
 
 Para reconhecer os rostos, dentro da pasta raspberrypi execute no terminal:
 
-	python pi_face_recognition.py --cascade haarcascade_frontalface_default.xml --encodings encodings.pickle
+	python pi_face_recognition.py
 
 
 Passo a passo para preparar sistema:
