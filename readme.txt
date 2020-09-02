@@ -1,4 +1,4 @@
-Crie uma pasta chamada 'dataset' no mesma pasta dos arquivos encode_faces.py e pi_face_recognition.py 
+Crie uma pasta chamada 'dataset' na mesma pasta dos arquivos encode_faces.py e pi_face_recognition.py 
 contendo pastas com os nomes das pessoas e fotos dentro das respectivas pastas.
 
 
@@ -22,7 +22,7 @@ Passo a passo para preparar sistema:
 
 	Obrigatórios:
 		4. sudo apt-get install build-essential cmake
-		5. sudo apt-get isntall libopenblas-dev liblapack-dev
+		5. sudo apt-get install libopenblas-dev liblapack-dev
 		6. sudo apt-get install libx11-dev libgtk-3-dev
 		7. pip install opencv-contrib-python
 		8. pip install dlib -vvv
