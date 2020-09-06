@@ -8,7 +8,7 @@ import time
 import cv2
 
 
-encodings_path = "encodings.pickle"
+encodings_path = "../encodings.pickle"
 cascade = "haarcascade_frontalface_default.xml"
 
 # carrega as faces conhecidas e incorporações (embeddings) junto
@@ -25,6 +25,11 @@ time.sleep(2.0)
 
 # inicia o contador de quadros por segundo (FPS)
 fps = FPS().start()
+
+# inicia variáveis para verificação
+verified_user = ''
+last_verified_user = ''
+verified_counter = 0
 
 # passa pelos frames do stream de vídeo
 while True:
@@ -89,6 +94,23 @@ while True:
         y = top - 15 if top - 15 > 15 else top + 15
         cv2.putText(frame, name, (left, y), cv2.FONT_HERSHEY_SIMPLEX,
                     0.75, (0, 255, 0), 2)
+
+    # verifica se o usuário foi reconhecido 12 vezes consecutivas para mitigar erros
+    # após a verificação imprime no console qual usuário foi reconhecido
+    if len(names) > 0:
+        if verified_user == names[-1]:
+            verified_counter += 1
+        else:
+            verified_user = names[-1]
+            verified_counter = 1
+
+        if verified_counter >= 12:
+            if verified_user == "Unknown":
+                print("Unknown Person!")
+            elif last_verified_user != verified_user:
+                print(f"User verified: {name}")
+            last_verified_user = verified_user
+            verified_counter = 0
 
     # mostra a imagem em nossa tela
     cv2.imshow("Frame", frame)
