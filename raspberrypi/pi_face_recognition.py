@@ -7,6 +7,8 @@ import pickle
 import time
 import cv2
 
+from logs import generate_log
+
 
 encodings_path = "../encodings.pickle"
 cascade = "haarcascade_frontalface_default.xml"
@@ -108,7 +110,7 @@ while True:
             if verified_user == "Unknown":
                 print("Unknown Person!")
             elif last_verified_user != verified_user:
-                print(f"User verified: {name}")
+                print(generate_log(name))
             last_verified_user = verified_user
             verified_counter = 0
 
