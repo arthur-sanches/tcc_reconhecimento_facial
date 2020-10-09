@@ -20,10 +20,13 @@ while True:
             new_log = False
 
         full_log += log.decode("utf-8")
+        cleaned_log = full_log[HEADERSIZE:]
 
-        if len(full_log[HEADERSIZE:]) == loglen:
+        if len(cleaned_log) == loglen:
             print("Log received!")
-            print(full_log)
+            print(cleaned_log)
+            with open("operador/logs.txt", "a") as f:
+                f.write(cleaned_log+'\n')
             full_log = ''
             new_log = True
 
