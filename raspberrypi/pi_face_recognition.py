@@ -7,7 +7,8 @@ import pickle
 import time
 import cv2
 
-from logs import generate_log
+import logs
+import client
 
 
 encodings_path = "../encodings.pickle"
@@ -32,6 +33,8 @@ fps = FPS().start()
 verified_user = ''
 last_verified_user = ''
 verified_counter = 0
+
+s = client.establish_connection()
 
 # passa pelos frames do stream de vídeo
 while True:
@@ -110,7 +113,10 @@ while True:
             if verified_user == "Unknown":
                 print("Unknown Person!")
             elif last_verified_user != verified_user:
-                print(generate_log(name))
+                log = logs.generate_log(name)
+                print(log)
+                client.send_log(s, log)
+
             last_verified_user = verified_user
             verified_counter = 0
 
