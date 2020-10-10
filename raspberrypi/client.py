@@ -12,6 +12,7 @@ def establish_connection():  # (operador):
 
 
 def close_connection(s):
+    s.send(bytes("close conn", "utf-8"))
     s.close()
     print("Connection closed.")
 

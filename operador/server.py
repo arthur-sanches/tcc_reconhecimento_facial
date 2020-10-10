@@ -22,6 +22,9 @@ while True:
         full_log += log.decode("utf-8")
         cleaned_log = full_log[HEADERSIZE:]
 
+        if cleaned_log == b'close conn':
+            break
+
         if len(cleaned_log) == loglen:
             print("Log received!")
             print(cleaned_log)
@@ -29,14 +32,3 @@ while True:
                 f.write(cleaned_log+'\n')
             full_log = ''
             new_log = True
-
-"""    msg = "Welcome to the server!"
-    msg = f"{len(msg):<{HEADERSIZE}}" + msg
-
-    clientsocket.send(bytes(msg, "utf-8"))
-
-    while True:
-        time.sleep(3)
-        msg = f"The time is {time.time()}"
-        msg = f"{len(msg):<{HEADERSIZE}}" + msg
-        clientsocket.send(bytes(msg, "utf-8"))"""

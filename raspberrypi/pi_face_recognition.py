@@ -34,6 +34,7 @@ verified_user = ''
 last_verified_user = ''
 verified_counter = 0
 
+# inicia uma conexão com o operador
 s = client.establish_connection()
 
 # passa pelos frames do stream de vídeo
@@ -130,6 +131,9 @@ while True:
 
     # atualiza o contador de quadros por segundo (FPS)
     fps.update()
+
+# encerra a conexão com o operador
+client.close_connection(s)
 
 # para o temporizador e mostra informações sobre a taxa
 # de quadros por segundo
