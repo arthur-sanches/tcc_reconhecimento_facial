@@ -6,7 +6,7 @@ import cv2
 import os
 
 
-def encoded(fileName):
+def isEncoded(fileName):
     if(fileName.startswith('encoded-')):
         return True
     else:
@@ -20,7 +20,7 @@ encodings_path = "encodings.pickle"
 # pega os caminhos das imagens de entrada da pasta dataset
 print("[INFO] quantifying faces...")
 imagePaths = [imagePath for imagePath in list(paths.list_images(
-    dataset_path)) if not encoded(imagePath.split(os.path.sep)[-1])]
+    dataset_path)) if not isEncoded(imagePath.split(os.path.sep)[-1])]
 
 # inicializa a lista de codificações e nomes conhecidos
 knownEncodings = []
@@ -32,7 +32,7 @@ for (i, imagePath) in enumerate(imagePaths):
     name = imagePath.split(os.path.sep)[-2]
     fileName = imagePath.split(os.path.sep)[-1]
 
-    if(not encoded(fileName)):
+    if(not isEncoded(fileName)):
         print("[INFO] processing image {}/{}".format(i + 1,
                                                      len(imagePaths)))
 
