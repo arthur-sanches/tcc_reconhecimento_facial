@@ -1,5 +1,6 @@
 import socket
 import time
+from main import MyForm
 
 HEADERSIZE = 10
 
