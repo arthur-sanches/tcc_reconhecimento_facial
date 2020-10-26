@@ -12,21 +12,30 @@ class MyForm(QDialog):
         super().__init__()
         self.ui = Ui_Dialog()
         self.ui.setupUi(self)
-        self.carregaLogs()
 
     def carregaLogs(self):
-        with open("logs.txt", "r") as f:
-            self.ui.textBrowserLogs.setText(f.read())
+        try:
+            with open("logs.txt", "r") as f:
+                logs = ""
+                lines = f.readlines()
+                for line in reversed(lines):
+                    logs += line
+                self.ui.textBrowserLogs.setText(logs)
+        except:
+            with open("logs.txt", "w") as f:
+                pass
+        finally:
+            pass
 
     def atualizaLogs(self, log):
-        self.ui.textBrowserLogs.append(log)
+        self.ui.textBrowserLogs.insertPlainText(log)
 
 
-def inicia_servidor():
+def inicia_servidor(interface):
     servidor_ligado = True
     fila_servidor = queue.Queue()
     t_servidor = threading.Thread(
-        target=executa_servidor, args=(servidor_ligado, fila_servidor))
+        target=executa_servidor, args=(servidor_ligado, fila_servidor, interface))
     t_servidor.start()
     return fila_servidor, t_servidor
 
@@ -41,7 +50,8 @@ if __name__ == "__main__":
     app = QApplication(sys.argv)
     interface = MyForm()
     interface.show()
-    fila_servidor, t_servidor = inicia_servidor()
+    interface.carregaLogs()
+    fila_servidor, t_servidor = inicia_servidor(interface)
     execution = app.exec_()
     encerra_servidor(fila_servidor, t_servidor)
     time.sleep(0.02)

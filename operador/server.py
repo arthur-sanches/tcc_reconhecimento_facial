@@ -4,7 +4,7 @@ import time
 import select
 
 
-def executa_servidor(servidor_ligado, fila_server):
+def executa_servidor(servidor_ligado, fila_server, interface):
     try:
         HEADERSIZE = 10
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -41,8 +41,10 @@ def executa_servidor(servidor_ligado, fila_server):
                     if (len(cleaned_log) == loglen) and (cleaned_log != "close conn"):
                         print("Log recebido!")
                         print(cleaned_log)
+                        cleaned_log += '\n'
                         with open("logs.txt", "a") as f:
-                            f.write(cleaned_log+'\n')
+                            f.write(cleaned_log)
+                        interface.atualizaLogs(cleaned_log)
                         full_log = ''
                         new_log = True
 
