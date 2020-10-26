@@ -116,7 +116,7 @@ while True:
             elif last_verified_user != verified_user:
                 log = logs.generate_log(name)
                 print(log)
-                client.send_log(s, log)
+                client.send_message(s, log)
 
             last_verified_user = verified_user
             verified_counter = 0
