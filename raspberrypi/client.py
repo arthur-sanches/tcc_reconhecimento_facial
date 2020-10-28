@@ -28,17 +28,17 @@ def recv_encodings(s):
     full_enc = ''
     new_enc = True
     while True:
-        enc = s.recv(32)
+        enc = s.recv(4096)
 
         if len(enc) == 0:
             return('')
 
         if new_enc:
-            enclen = int(enc[:HEADERSIZE])
+            enc_len = int(enc[:HEADERSIZE])
             new_enc = False
 
         full_enc += enc.decode("utf-8")
 
-        if len(full_enc[HEADERSIZE:]) == enclen:
+        if len(full_enc[HEADERSIZE:]) == enc_len:
             print("Encoding received!")
             return(full_enc)

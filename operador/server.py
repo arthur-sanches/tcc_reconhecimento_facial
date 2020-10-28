@@ -30,15 +30,15 @@ def executa_servidor(servidor_ligado, fila_server, interface):
             while servidor_ligado and cliente_conectado:
                 time.sleep(0.0125)
                 try:
-                    log = clientsocket.recv(32)
+                    log = clientsocket.recv(4096)
                     if new_log:
-                        loglen = int(log[:HEADERSIZE])
+                        log_len = int(log[:HEADERSIZE])
                         new_log = False
 
                     full_log += log.decode("utf-8")
                     cleaned_log = full_log[HEADERSIZE:]
 
-                    if (len(cleaned_log) == loglen) and (cleaned_log != "close conn"):
+                    if (len(cleaned_log) == log_len) and (cleaned_log != "close conn"):
                         print("Log recebido!")
                         print(cleaned_log)
                         cleaned_log += '\n'
