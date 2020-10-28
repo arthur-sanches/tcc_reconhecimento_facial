@@ -2,10 +2,14 @@ import sys
 import time
 import queue
 import threading
+import shutil
+import os
 from PyQt5.QtWidgets import QDialog, QApplication, QFileDialog
+
 from interface_operador import *
 from server import executa_servidor
 from utils import nome_arquivo
+from encode_faces import encode_faces
 
 
 class MyForm(QDialog):
@@ -14,8 +18,11 @@ class MyForm(QDialog):
         self.ui = Ui_Dialog()
         self.ui.setupUi(self)
         self.__carregaLogs()
-        imagens = self.ui.pushButtonSelectImgs.clicked.connect(
-            self.selecionaImagens)
+        self.__imagens = []
+        self.ui.pushButtonSelectImgs.clicked.connect(
+            self.__selecionaImagens)
+        self.ui.pushButtonCadastrar.clicked.connect(
+            self.__cadastraUsuario)
 
     def __carregaLogs(self):
         try:
@@ -34,7 +41,7 @@ class MyForm(QDialog):
     def atualizaLogs(self, log):
         self.ui.textBrowserLogs.insertPlainText(log)
 
-    def selecionaImagens(self):
+    def limpaLabelsCadastro(self):
         self.ui.labelImg1.clear()
         self.ui.labelImg2.clear()
         self.ui.labelImg3.clear()
@@ -42,6 +49,8 @@ class MyForm(QDialog):
         self.ui.labelImg5.clear()
         self.ui.labelAviso.clear()
 
+    def __selecionaImagens(self):
+        self.limpaLabelsCadastro()
         fname = QFileDialog.getOpenFileNames(
             self, 'Open file', '/home', "Image files (*.jpg *.jpeg *.png)")
 
@@ -58,11 +67,25 @@ class MyForm(QDialog):
         if len(fname[0]) >= 5:
             self.ui.labelImg5.setText(nome_arquivo(fname[0][4]))
 
-        return fname[0]
+        self.__imagens = fname[0]
 
-    def cadastraUsuario(self, imagens):
-        for imagem in imagens:
-            pass
+    def __cadastraUsuario(self):
+        self.limpaLabelsCadastro()
+        if len(self.__imagens) <= 2:
+            self.ui.labelAviso.setText("Número insuficiente de imagens!")
+            return
+        nome = self.ui.lineEditNome.text()
+        rg = self.ui.lineEditRG.text()
+        caminho_pasta = f"usuarios/{nome}-{rg}/"
+        if os.path.exists(caminho_pasta):
+            self.ui.labelAviso.setText("Esse usuário já está cadastrado.")
+            return
+        os.makedirs(caminho_pasta)
+        for imagem in self.__imagens:
+            shutil.copy(imagem, caminho_pasta)
+        # gera encodings e envia para o raspberry
+        encode_faces()
+        self.ui.labelImg3.setText("Usuário cadastrado com sucesso!")
 
 
 def inicia_servidor(interface):
