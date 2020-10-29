@@ -13,16 +13,20 @@ from encode_faces import encode_faces
 
 
 class MyForm(QDialog):
-    def __init__(self):
+    def __init__(self, app):
         super().__init__()
         self.ui = Ui_Dialog()
         self.ui.setupUi(self)
+        self.app = app
         self.__carregaLogs()
         self.__imagens = []
+        self.fila_servidor, self.servidor = self.inicia_servidor()
         self.ui.pushButtonSelectImgs.clicked.connect(
             self.__selecionaImagens)
         self.ui.pushButtonCadastrar.clicked.connect(
             self.__cadastraUsuario)
+        self.app.aboutToQuit.connect(self.encerra_servidor)
+        self.show()
 
     def __carregaLogs(self):
         try:
@@ -88,27 +92,24 @@ class MyForm(QDialog):
         self.ui.labelImg3.setText("Usuário cadastrado com sucesso!")
 
 
-def inicia_servidor(interface):
-    servidor_ligado = True
-    fila_servidor = queue.Queue()
-    t_servidor = threading.Thread(
-        target=executa_servidor, args=(servidor_ligado, fila_servidor, interface))
-    t_servidor.start()
-    return fila_servidor, t_servidor
+    def inicia_servidor(self):
+        servidor_ligado = True
+        fila_servidor = queue.Queue()
+        t_servidor = threading.Thread(
+            target=executa_servidor, args=(servidor_ligado, fila_servidor, self))
+        t_servidor.start()
+        return fila_servidor, t_servidor
 
 
-def encerra_servidor(fila_servidor, t_servidor):
-    servidor_ligado = False
-    fila_servidor.put(servidor_ligado)
-    t_servidor.join()
+    def encerra_servidor(self):
+        servidor_ligado = False
+        self.fila_servidor.put(servidor_ligado)
+        self.servidor.join()
 
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
-    interface = MyForm()
-    interface.show()
-    fila_servidor, t_servidor = inicia_servidor(interface)
+    interface = MyForm(app)
     execution = app.exec_()
-    encerra_servidor(fila_servidor, t_servidor)
     time.sleep(0.02)
     sys.exit(execution)
