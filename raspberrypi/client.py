@@ -5,7 +5,7 @@ HEADERSIZE = 10
 
 def establish_connection():  # (operador):
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    s.connect((socket.gethostname(), 6418))
+    s.connect((socket.gethostname(), 6416))
     return s
     #s.connect(operador, 6416)
     #print("Connection established with " + operador + " on port 6416")
@@ -17,12 +17,19 @@ def close_connection(s):
     print("Connection closed.")
 
 
-def send_message(s, log):
-    log = f"{len(log):<{HEADERSIZE}}" + log
-    s.send(bytes(log, "utf-8"))
+def send_log(s, log):
+    log = "new log:" + log
+    send_message(s, log)
+
+
+def send_message(s, msg):
+    msg = f"{len(msg):<{HEADERSIZE}}" + msg
+    s.send(bytes(msg, "utf-8"))
+
 
 def send_image(s):
     pass
+
 
 def recv_encodings(s):
     full_enc = ''

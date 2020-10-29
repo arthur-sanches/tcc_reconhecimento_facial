@@ -9,7 +9,7 @@ def executa_servidor(servidor_ligado, fila_server, interface):
         HEADERSIZE = 10
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         s.setblocking(False)
-        s.bind((socket.gethostname(), 6418))
+        s.bind((socket.gethostname(), 6416))
         s.listen(5)
         cliente_conectado = False
 
@@ -19,8 +19,8 @@ def executa_servidor(servidor_ligado, fila_server, interface):
                 clientsocket, address = s.accept()
                 clientsocket.setblocking(False)
                 print(f"Conexão com {address} foi estabelecida!")
-                full_log = ''
-                new_log = True
+                full_msg = ''
+                new_msg = True
                 cliente_conectado = True
             except:
                 pass
@@ -30,28 +30,26 @@ def executa_servidor(servidor_ligado, fila_server, interface):
             while servidor_ligado and cliente_conectado:
                 time.sleep(0.01)
                 try:
-                    log = clientsocket.recv(4096)
-                    if new_log:
-                        log_len = int(log[:HEADERSIZE])
-                        new_log = False
+                    msg = clientsocket.recv(4096)
+                    if new_msg:
+                        msg_len = int(msg[:HEADERSIZE])
+                        new_msg = False
 
-                    full_log += log.decode("utf-8")
-                    cleaned_log = full_log[HEADERSIZE:]
-
-                    if (len(cleaned_log) == log_len) and (cleaned_log != "close conn"):
-                        print("Log recebido!")
-                        print(cleaned_log)
-                        cleaned_log += '\n'
-                        with open("logs.txt", "a") as f:
-                            f.write(cleaned_log)
-                        interface.atualizaLogs(cleaned_log)
-                        full_log = ''
-                        new_log = True
-
-                    if cleaned_log == "close conn":
+                    full_msg += msg.decode("utf-8")
+                    cleaned_msg = full_msg[HEADERSIZE:]
+                    if cleaned_msg == "close conn":
                         clientsocket.close()
                         print(f"Conexão com {address} foi encerrada!")
                         cliente_conectado = False
+                    elif (len(cleaned_msg) == msg_len):
+                        print("Mensagem recebido!")
+                        if cleaned_msg.startswith("new log:"):
+                            receive_log(cleaned_msg, interface)
+                        elif cleaned_msg.startswith("enco dt:"):
+                            send_encoding(cleaned_msg, interface, HEADERSIZE)
+                        full_msg = ''
+                        new_msg = True
+
                 except:
                     pass
                 finally:
@@ -66,6 +64,25 @@ def executa_servidor(servidor_ligado, fila_server, interface):
         print("Servidor desligado.")
 
 
+def receive_log(msg, interface):
+    log = conteudo_msg(msg)
+    print(f"Novo acesso: {log}")
+    log += '\n'
+    with open("logs.txt", "a") as f:
+        f.write(log)
+    interface.atualizaLogs(log)
+
+
+def send_encoding(msg, interface, HEADERSIZE):
+    encoding_date_rasp = int(conteudo_msg(msg))
+    if interface.encoding_date > encoding_date_rasp:
+        with open("encodings.pickle", "rb") as f:
+            encodings = f.read()
+        header_msg = f"{len(encodings):<{HEADERSIZE}}new enc:".encode
+        b"" + header_msg + encodings
+        # clientsocket.send(encodings)
+
+
 def fecha_conexao(s):
     s.close()
     print("Conexões encerradas.")
@@ -76,3 +93,8 @@ def recebe_sinal_servidor_ligado(fila_server):
         return(fila_server.get())
     else:
         return(True)
+
+
+def conteudo_msg(msg):
+    inicio = msg.find(":")+1
+    return msg[inicio::]
