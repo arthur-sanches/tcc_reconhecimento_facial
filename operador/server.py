@@ -14,7 +14,7 @@ def executa_servidor(servidor_ligado, fila_server, interface):
         cliente_conectado = False
 
         while servidor_ligado:
-            time.sleep(0.0125)
+            time.sleep(0.01)
             try:
                 clientsocket, address = s.accept()
                 clientsocket.setblocking(False)
@@ -28,7 +28,7 @@ def executa_servidor(servidor_ligado, fila_server, interface):
                 pass
 
             while servidor_ligado and cliente_conectado:
-                time.sleep(0.0125)
+                time.sleep(0.01)
                 try:
                     log = clientsocket.recv(4096)
                     if new_log:
