@@ -40,8 +40,9 @@ verified_counter = 0
 # inicia thread para receber mensagens
 cliente_ligado = True
 fila_mensagens = queue.Queue()
+fila_encodings = queue.Queue()
 t_mensagens = threading.Thread(
-    target=client.recv_message, args=(cliente_ligado, fila_mensagens))
+    target=client.recv_message, args=(cliente_ligado, fila_mensagens, fila_encodings))
 t_mensagens.start()
 
 # passa pelos frames do stream de vídeo
@@ -138,6 +139,11 @@ while True:
 
     # atualiza o contador de quadros por segundo (FPS)
     fps.update()
+
+    # atualiza encodings caso novos sejam recebidos
+    if (not fila_encodings.empty()):
+        data = pickle.loads(fila_encodings.get())
+        detector = cv2.CascadeClassifier(cv2.data.haarcascades + cascade)
 
 # encerra a conexão com o operador
 fila_mensagens.put(["cliente ligado", False])

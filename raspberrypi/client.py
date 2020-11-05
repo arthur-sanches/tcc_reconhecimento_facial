@@ -56,7 +56,7 @@ def send_image(s):
     pass
 
 
-def recv_message(cliente_ligado, fila_mensagens):
+def recv_message(cliente_ligado, fila_mensagens, fila_encodings):
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     s.connect((socket.gethostname(), 6416))
     s.setblocking(False)
@@ -76,7 +76,7 @@ def recv_message(cliente_ligado, fila_mensagens):
             if len(cleaned_msg) == msg_len:
                 print("Messagem recebida!")
                 if cleaned_msg.startswith("new enc:"):
-                    recebe_encoding(cleaned_msg)
+                    recebe_encoding(cleaned_msg, fila_encodings)
                 elif cleaned_msg.startswith("enco dt:"):
                     envia_data_encoding(s)
                 elif cleaned_msg.startswith("end con:"):
@@ -112,12 +112,13 @@ def envia_data_encoding(s):
     send_message(s, msg_dt)
 
 
-def recebe_encoding(dados):
+def recebe_encoding(dados, fila_encodings):
     msg = conteudo_msg(dados)
     encodings = eval(msg)
-    print("Novos encodings recebidos.")
+    fila_encodings.put(encodings)
     with open("encodings.pickle", "wb") as f:
         f.write(encodings)
+    print("Novos encodings recebidos.")
 
 
 def conteudo_msg(msg):
