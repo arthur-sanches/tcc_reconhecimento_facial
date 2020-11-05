@@ -6,12 +6,14 @@ import imutils
 import pickle
 import time
 import cv2
+import queue
+import threading
 
 import logs
 import client
 
 
-encodings_path = "../encodings.pickle"
+encodings_path = "encodings.pickle"
 cascade = "haarcascade_frontalface_default.xml"
 
 # carrega as faces conhecidas e incorporações (embeddings) junto
@@ -35,7 +37,12 @@ last_verified_user = ''
 verified_counter = 0
 
 # inicia uma conexão com o operador
-s = client.establish_connection()
+# inicia thread para receber mensagens
+cliente_ligado = True
+fila_mensagens = queue.Queue()
+t_mensagens = threading.Thread(
+    target=client.recv_message, args=(cliente_ligado, fila_mensagens))
+t_mensagens.start()
 
 # passa pelos frames do stream de vídeo
 while True:
@@ -115,8 +122,8 @@ while True:
                 print("Unknown Person!")
             elif last_verified_user != verified_user:
                 log = logs.generate_log(name)
+                fila_mensagens.put(["envia log", log])
                 print(log)
-                client.send_log(s, log)
 
             last_verified_user = verified_user
             verified_counter = 0
@@ -133,7 +140,8 @@ while True:
     fps.update()
 
 # encerra a conexão com o operador
-client.close_connection(s)
+fila_mensagens.put(["cliente ligado", False])
+t_mensagens.join()
 
 # para o temporizador e mostra informações sobre a taxa
 # de quadros por segundo
