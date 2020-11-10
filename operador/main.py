@@ -5,6 +5,7 @@ import threading
 import shutil
 import os
 from PyQt5.QtWidgets import QDialog, QApplication, QFileDialog
+from PyQt5.QtGui import QTextCursor
 
 from interface_operador import *
 from server import executa_servidor
@@ -18,6 +19,7 @@ class MyForm(QDialog):
         self.ui = Ui_Dialog()
         self.ui.setupUi(self)
         self.app = app
+        self.__cursorLogs = QTextCursor(self.ui.textBrowserLogs.document())
         self.__carregaLogs()
         self.__imagens = []
         self.fila_servidor, self.fila_encoding, self.servidor = self.inicia_servidor()
@@ -30,12 +32,14 @@ class MyForm(QDialog):
 
     def __carregaLogs(self):
         try:
+            self.__cursorLogs.setPosition(0)
+            self.ui.textBrowserLogs.setTextCursor(self.__cursorLogs)
             with open("logs.txt", "r") as f:
-                logs = ""
                 lines = f.readlines()
-                for line in reversed(lines):
-                    logs += line
-                self.ui.textBrowserLogs.setText(logs)
+            logs = ""
+            for line in reversed(lines):
+                logs += line
+            self.ui.textBrowserLogs.setText(logs)
         except:
             with open("logs.txt", "x") as f:
                 pass
@@ -43,6 +47,8 @@ class MyForm(QDialog):
             pass
 
     def atualizaLogs(self, log):
+        self.__cursorLogs.setPosition(0)
+        self.ui.textBrowserLogs.setTextCursor(self.__cursorLogs)
         self.ui.textBrowserLogs.insertPlainText(log)
 
     def limpaLabelsCadastro(self):
