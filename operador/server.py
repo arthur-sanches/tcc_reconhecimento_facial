@@ -4,7 +4,6 @@ import queue
 import time
 import select
 import pickle
-from ast import literal_eval
 
 HEADERSIZE = 10
 
@@ -47,10 +46,11 @@ def executa_servidor(servidor_ligado, fila_server, fila_encoding, interface):
                         print(f"Conexão com {address} foi encerrada!")
                         cliente_conectado = False
                     elif (len(cleaned_msg) == msg_len):
-                        print("Mensagem recebida!")
-                        if cleaned_msg.startswith("new log:"):
+                        if cleaned_msg.startswith("new img:"):
+                            recebe_frame(cleaned_msg, interface)
+                        elif cleaned_msg.startswith("new log:"):
                             receive_log(cleaned_msg, interface)
-                        if cleaned_msg.startswith("enco dt:"):
+                        elif cleaned_msg.startswith("enco dt:"):
                             data_enc_cliente = recebe_data_encoding(
                                 cleaned_msg)
                             data_enc_local = os.path.getmtime(
@@ -103,6 +103,12 @@ def envia_encoding(s):
 def pede_dt_enc_cliente(s):
     msg = "enco dt:"
     envia_mensagem(s, msg)
+
+
+def recebe_frame(msg, interface):
+    frame_msg = conteudo_msg(msg)
+    frame_bytes = eval(frame_msg)
+    interface.atualizaFrame(frame_bytes)
 
 
 def receive_log(msg, interface):

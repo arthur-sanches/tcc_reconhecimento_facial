@@ -2,7 +2,6 @@ import os.path
 import socket
 import time
 import pickle
-import ast
 
 HEADERSIZE = 10
 
@@ -52,8 +51,10 @@ def send_message(s, msg):
         pass
 
 
-def send_image(s):
-    pass
+def send_image(s, frame):
+    frame_msg = str(frame)
+    msg = "new img:" + frame_msg
+    send_message(s, msg)
 
 
 def recv_message(cliente_ligado, fila_mensagens, fila_encodings):
@@ -90,14 +91,17 @@ def recv_message(cliente_ligado, fila_mensagens, fila_encodings):
         except:
             pass
         finally:
-            cliente_ligado = recebe_sinal_cliente_ligado(s, fila_mensagens)
+            cliente_ligado = recebe_mensagem_cliente(s, fila_mensagens)
     close_connection(s)
 
 
-def recebe_sinal_cliente_ligado(s, fila_mensagens):
+def recebe_mensagem_cliente(s, fila_mensagens):
     if (not fila_mensagens.empty()):
         msg = fila_mensagens.get()
-        if (msg[0] == "envia log"):
+        if (msg[0] == "envia img"):
+            send_image(s, msg[1])
+            return(True)
+        elif (msg[0] == "envia log"):
             send_log(s, msg[1])
             return(True)
         elif (msg[0] == "cliente ligado"):

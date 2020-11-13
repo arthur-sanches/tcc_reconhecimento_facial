@@ -4,8 +4,12 @@ import queue
 import threading
 import shutil
 import os
+import cv2
+import base64
+import numpy
 from PyQt5.QtWidgets import QDialog, QApplication, QFileDialog
-from PyQt5.QtGui import QTextCursor
+from PyQt5.QtGui import QTextCursor, QImage, QPixmap
+from PyQt5.QtCore import Qt, pyqtSignal, pyqtSlot
 
 from interface_operador import *
 from server import executa_servidor
@@ -14,6 +18,9 @@ from encode_faces import encode_faces
 
 
 class MyForm(QDialog):
+
+    frameSignal = pyqtSignal(bytes)
+
     def __init__(self, app):
         super().__init__()
         self.ui = Ui_Dialog()
@@ -27,6 +34,7 @@ class MyForm(QDialog):
             self.__selecionaImagens)
         self.ui.pushButtonCadastrar.clicked.connect(
             self.__cadastraUsuario)
+        self.frameSignal.connect(self.mostraFrame)
         self.app.aboutToQuit.connect(self.encerra_servidor)
         self.show()
 
@@ -50,6 +58,20 @@ class MyForm(QDialog):
         self.__cursorLogs.setPosition(0)
         self.ui.textBrowserLogs.setTextCursor(self.__cursorLogs)
         self.ui.textBrowserLogs.insertPlainText(log)
+
+    def atualizaFrame(self, raw_frame):
+        self.frameSignal.emit(raw_frame)
+
+    def mostraFrame(self, raw_frame):
+        frame_bytes = base64.b64decode(raw_frame)
+        frame_np = numpy.frombuffer(frame_bytes, dtype=numpy.uint8)
+        frame = cv2.imdecode(frame_np, 1)
+        height, width, channel = frame.shape
+        bytesPerLine = channel * width
+        convertToQtFormat = QImage(frame.data, width, height, bytesPerLine, QImage.Format_RGB888)
+        img = convertToQtFormat.scaled(640, 480, Qt.KeepAspectRatio)
+        self.ui.label.setPixmap(QPixmap.fromImage(img))
+
 
     def limpaLabelsCadastro(self):
         self.ui.labelImg1.clear()

@@ -8,6 +8,7 @@ import time
 import cv2
 import queue
 import threading
+import base64
 
 import logs
 import client
@@ -36,6 +37,9 @@ verified_user = ''
 last_verified_user = ''
 verified_counter = 0
 
+# inicia variável para envio de 1 a cada 2 frames
+enviar_frame = True
+
 # inicia uma conexão com o operador
 # inicia thread para receber mensagens
 cliente_ligado = True
@@ -47,10 +51,10 @@ t_mensagens.start()
 
 # passa pelos frames do stream de vídeo
 while True:
-    # pega os frames do stream de vídeo e os redimensiona
-    # para 500px (para acelerar o processamento)
+    # pega o frame do stream de vídeo e redimensiona
+    # para 480px de largura para acelerar o processamento
     frame = vs.read()
-    frame = imutils.resize(frame, width=500)
+    frame = imutils.resize(frame, width=480)
 
     # converte o frame de entrada de (1) BGR para escala de cinza (para
     # a detecção de faces) e (2) de BGR para RGB (para o reconhecimento de faces)
@@ -61,77 +65,89 @@ while True:
     rects = detector.detectMultiScale(
         gray, scaleFactor=1.1, minNeighbors=5, minSize=(30, 30))
 
-    # o OpenCV retorna coordenadas da caixa delimitadora na ordem
-    # (x, y, w, h) mas precisamos delas na ordem (superior, direita,
-    # inferior, esquerda), então é necessário fazer uma reordenação
-    boxes = [(y, x + w, y + h, x) for (x, y, w, h) in rects]
+    if len(rects) > 0:
+        # o OpenCV retorna coordenadas da caixa delimitadora na ordem
+        # (x, y, w, h) mas precisamos delas na ordem (superior, direita,
+        # inferior, esquerda), então é necessário fazer uma reordenação
+        boxes = [(y, x + w, y + h, x) for (x, y, w, h) in rects]
 
-    # processa as incorporações faciais para cada caixa delimitadora de face
-    encodings = face_recognition.face_encodings(rgb, boxes)
-    names = []
+        # processa as incorporações faciais para cada caixa delimitadora de face
+        encodings = face_recognition.face_encodings(rgb, boxes)
+        names = []
 
-    # passa pelas incorporações faciais
-    for encoding in encodings:
-        # compara cada face na imagem de entrada com nossas codificações (encodings)
-        # conhecidas para encontrar correspondências
-        matches = face_recognition.compare_faces(data["encodings"],
-                                                 encoding)
-        name = "Unknown"
+        # passa pelas incorporações faciais
+        for encoding in encodings:
+            # compara cada face na imagem de entrada com nossas codificações (encodings)
+            # conhecidas para encontrar correspondências
+            matches = face_recognition.compare_faces(data["encodings"],
+                                                    encoding)
+            name = "Unknown"
 
-        # verifica se alguma correspondência foi encontrada
-        if True in matches:
-            # encontra as indexações de todas as faces correspondentes
-            # e inicia um dicionário (dictionary do python) para contar
-            # o número total de vezes que cada face foi correspondida
-            matchedIdxs = [i for (i, b) in enumerate(matches) if b]
-            counts = {}
+            # verifica se alguma correspondência foi encontrada
+            if True in matches:
+                # encontra as indexações de todas as faces correspondentes
+                # e inicia um dicionário (dictionary do python) para contar
+                # o número total de vezes que cada face foi correspondida
+                matchedIdxs = [i for (i, b) in enumerate(matches) if b]
+                counts = {}
 
-            # passa pelas indexações correspondidas e mantém um
-            # contador para cada face reconhecida
-            for i in matchedIdxs:
-                name = data["names"][i]
-                counts[name] = counts.get(name, 0) + 1
+                # passa pelas indexações correspondidas e mantém um
+                # contador para cada face reconhecida
+                for i in matchedIdxs:
+                    name = data["names"][i]
+                    counts[name] = counts.get(name, 0) + 1
 
-            # determina a face reconhecida com o maior número de votos
-            # (nota: no improvável evento de um empate o Python
-            # escolherá o primeiro valor no dicionário)
-            name = max(counts, key=counts.get)
+                # determina a face reconhecida com o maior número de votos
+                # (nota: no improvável evento de um empate o Python
+                # escolherá o primeiro valor no dicionário)
+                name = max(counts, key=counts.get)
 
-        # atualiza a lista de nomes
-        names.append(name)
+            # atualiza a lista de nomes
+            names.append(name)
 
-    # passa pelas faces reconhecidas
-    for ((top, right, bottom, left), name) in zip(boxes, names):
-        # escreve o nome da face prevista na imagem
-        cv2.rectangle(frame, (left, top), (right, bottom),
-                      (0, 255, 0), 2)
-        y = top - 15 if top - 15 > 15 else top + 15
-        cv2.putText(frame, name, (left, y), cv2.FONT_HERSHEY_SIMPLEX,
-                    0.75, (0, 255, 0), 2)
+        # passa pelas faces reconhecidas
+        for ((top, right, bottom, left), name) in zip(boxes, names):
+            # escreve o nome da face prevista na imagem
+            cv2.rectangle(frame, (left, top), (right, bottom),
+                        (0, 255, 0), 2)
+            y = top - 15 if top - 15 > 15 else top + 15
+            cv2.putText(frame, name, (left, y), cv2.FONT_HERSHEY_SIMPLEX,
+                        0.75, (0, 255, 0), 2)
 
-    # verifica se o usuário foi reconhecido 12 vezes consecutivas para mitigar erros
-    # após a verificação imprime no console qual usuário foi reconhecido
-    if len(names) > 0:
-        if verified_user == names[-1]:
-            verified_counter += 1
-        else:
-            verified_user = names[-1]
-            verified_counter = 1
+        # verifica se o usuário foi reconhecido 12 vezes consecutivas para mitigar erros
+        # após a verificação imprime no console qual usuário foi reconhecido
+        if len(names) > 0:
+            if verified_user == names[-1]:
+                verified_counter += 1
+            else:
+                verified_user = names[-1]
+                verified_counter = 1
 
-        if verified_counter >= 12:
-            if verified_user == "Unknown":
-                print("Unknown Person!")
-            elif last_verified_user != verified_user:
-                log = logs.generate_log(name)
-                fila_mensagens.put(["envia log", log])
-                print(log)
+            if verified_counter >= 12:
+                if verified_user == "Unknown":
+                    print("Unknown Person!")
+                elif last_verified_user != verified_user:
+                    log = logs.generate_log(name)
+                    fila_mensagens.put(["envia log", log])
+                    print(log)
 
-            last_verified_user = verified_user
-            verified_counter = 0
+                last_verified_user = verified_user
+                verified_counter = 0
 
-    # mostra a imagem em nossa tela
+    # mostra imagem na tela
     cv2.imshow("Frame", frame)
     key = cv2.waitKey(1) & 0xFF
+
+    # envia imagem para o operador
+    if enviar_frame:
+        frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+        frame_rgb = cv2.resize(frame_rgb, (320, 240))
+        encoded_img, buffer_img = cv2.imencode('.jpg', frame_rgb)
+        jpg_texto = base64.b64encode(buffer_img)
+        fila_mensagens.put(["envia img", jpg_texto])
+        enviar_frame = False
+    else:
+        enviar_frame = True
 
     # se a tecla `q` for pressionada, sai do laço (loop)
     if key == ord("q"):
