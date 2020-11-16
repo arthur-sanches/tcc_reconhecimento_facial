@@ -81,7 +81,7 @@ while True:
             # conhecidas para encontrar correspondências
             matches = face_recognition.compare_faces(data["encodings"],
                                                     encoding)
-            name = "Unknown"
+            name = "Face desconhecida"
 
             # verifica se alguma correspondência foi encontrada
             if True in matches:
@@ -123,9 +123,9 @@ while True:
                 verified_user = names[-1]
                 verified_counter = 1
 
-            if verified_counter >= 12:
-                if verified_user == "Unknown":
-                    print("Unknown Person!")
+            if verified_counter >= 8:
+                if verified_user == "Face desconhecida":
+                    print("Face desconhecida!")
                 elif last_verified_user != verified_user:
                     log = logs.generate_log(name)
                     fila_mensagens.put(["envia log", log])
