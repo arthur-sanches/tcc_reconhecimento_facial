@@ -12,6 +12,7 @@ import base64
 
 import logs
 import client
+import door_control
 
 
 encodings_path = "encodings.pickle"
@@ -48,6 +49,9 @@ fila_encodings = queue.Queue()
 t_mensagens = threading.Thread(
     target=client.recv_message, args=(cliente_ligado, fila_mensagens, fila_encodings))
 t_mensagens.start()
+
+# instancia classe Door()
+door = door_control.Door()
 
 # passa pelos frames do stream de vídeo
 while True:
@@ -130,6 +134,7 @@ while True:
                     log = logs.generate_log(name)
                     fila_mensagens.put(["envia log", log])
                     print(log)
+                    door.open()
 
                 last_verified_user = verified_user
                 verified_counter = 0

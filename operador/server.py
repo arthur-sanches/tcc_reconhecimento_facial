@@ -13,7 +13,7 @@ def executa_servidor(servidor_ligado, fila_server, fila_encoding, interface):
     try:
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         s.setblocking(False)
-        s.bind((socket.gethostname(), 6416))
+        s.bind(("192.168.15.13", 6416))
         s.listen(5)
         cliente_conectado = False
 
