@@ -29,11 +29,14 @@ class MyForm(QDialog):
         self.__cursorLogs = QTextCursor(self.ui.textBrowserLogs.document())
         self.__carregaLogs()
         self.__imagens = []
-        self.fila_servidor, self.fila_encoding, self.servidor = self.inicia_servidor()
+        self.fila_servidor, self.fila_encoding, self.fila_porta, self.servidor = self.inicia_servidor()
         self.ui.pushButtonSelectImgs.clicked.connect(
             self.__selecionaImagens)
         self.ui.pushButtonCadastrar.clicked.connect(
             self.__cadastraUsuario)
+        self.ui.pushButtonLiberaAcesso.clicked.connect(
+            self.__enviaLiberacaoAcesso
+        )
         self.frameSignal.connect(self.mostraFrame)
         self.app.aboutToQuit.connect(self.encerra_servidor)
         self.show()
@@ -72,6 +75,8 @@ class MyForm(QDialog):
         img = convertToQtFormat.scaled(640, 480, Qt.KeepAspectRatio)
         self.ui.label.setPixmap(QPixmap.fromImage(img))
 
+    def __enviaLiberacaoAcesso(self):
+        self.fila_porta.put(True)
 
     def limpaLabelsCadastro(self):
         self.ui.labelImg1.clear()
@@ -126,10 +131,11 @@ class MyForm(QDialog):
         fila_encoding = queue.Queue()
         fila_encoding.put(True)
         fila_servidor = queue.Queue()
+        fila_porta = queue.Queue()
         t_servidor = threading.Thread(
-            target=executa_servidor, args=(servidor_ligado, fila_servidor, fila_encoding, self))
+            target=executa_servidor, args=(servidor_ligado, fila_servidor, fila_encoding, fila_porta, self))
         t_servidor.start()
-        return fila_servidor, fila_encoding, t_servidor
+        return fila_servidor, fila_encoding, fila_porta, t_servidor
 
 
     def encerra_servidor(self):

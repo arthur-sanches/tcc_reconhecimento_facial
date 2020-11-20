@@ -8,7 +8,7 @@ import pickle
 HEADERSIZE = 10
 
 
-def executa_servidor(servidor_ligado, fila_server, fila_encoding, interface):
+def executa_servidor(servidor_ligado, fila_server, fila_encoding, fila_porta, interface):
     servidor_ligado = True
     try:
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -70,6 +70,7 @@ def executa_servidor(servidor_ligado, fila_server, fila_encoding, interface):
                     if recebe_sinal_encoding(fila_encoding):
                         print("Requisitando data dos Encodings...")
                         pede_dt_enc_cliente(clientsocket)
+                    recebe_sinal_porta(clientsocket, fila_porta)
 
             if servidor_ligado:
                 servidor_ligado = recebe_sinal_servidor_ligado(fila_server)
@@ -143,6 +144,13 @@ def recebe_sinal_servidor_ligado(fila_server):
         return(fila_server.get())
     else:
         return(True)
+
+
+def recebe_sinal_porta(s, fila_porta):
+    if (not fila_porta.empty()):
+        sinal = fila_porta.get()
+        if sinal == True:
+            envia_mensagem(s, 'abr prt:')
 
 
 def conteudo_msg(msg):

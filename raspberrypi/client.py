@@ -9,11 +9,9 @@ HEADERSIZE = 10
 def cria_socket():
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     server_indisponivel = True
-    contador = 0
-    while server_indisponivel and contador <= 10:
+    while server_indisponivel:
+        time.sleep(5)
         server_indisponivel = estabelece_conexao(s)
-        contador += 1
-        time.sleep(2)
     return s
 
 
@@ -57,9 +55,9 @@ def send_image(s, frame):
     send_message(s, msg)
 
 
-def recv_message(cliente_ligado, fila_mensagens, fila_encodings):
+def recv_message(cliente_ligado, fila_mensagens, fila_encodings, fila_porta):
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    s.connect((socket.gethostname(), 6416))
+    s.connect(("192.168.15.13", 6416))
     s.setblocking(False)
     full_msg = ''
     new_msg = True
@@ -82,6 +80,9 @@ def recv_message(cliente_ligado, fila_mensagens, fila_encodings):
                     envia_data_encoding(s)
                 elif cleaned_msg.startswith("end con:"):
                     close_connection(s)
+                elif cleaned_msg.startswith("abr prt:"):
+                    print("Abrindo porta...")
+                    fila_porta.put(True)
                 else:
                     print(cleaned_msg)
                 full_msg = ''

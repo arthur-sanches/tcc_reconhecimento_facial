@@ -46,8 +46,9 @@ enviar_frame = True
 cliente_ligado = True
 fila_mensagens = queue.Queue()
 fila_encodings = queue.Queue()
+fila_porta = queue.Queue()
 t_mensagens = threading.Thread(
-    target=client.recv_message, args=(cliente_ligado, fila_mensagens, fila_encodings))
+    target=client.recv_message, args=(cliente_ligado, fila_mensagens, fila_encodings, fila_porta))
 t_mensagens.start()
 
 # instancia classe Door()
@@ -142,6 +143,15 @@ while True:
     # mostra imagem na tela
     cv2.imshow("Frame", frame)
     key = cv2.waitKey(1) & 0xFF
+
+    # verifica sinal do operador para abrir porta manualmente
+    if (not fila_porta.empty()):
+        sinal = fila_porta.get()
+        if sinal == True:
+            log = logs.generate_log("Operador")
+            fila_mensagens.put(["envia log", log])
+            print(log)
+            door.open()
 
     # envia imagem para o operador
     if enviar_frame:
